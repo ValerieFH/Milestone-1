@@ -1,10 +1,12 @@
 //To do:
 //define initial canvas
-document.addEventListener('DOMContentLoaded', SetupCanvas)
+document.addEventListener('DOMContentLoaded', setupCanvas)
+document.addEventListener('DOMContentLoaded', drawShip)
 
-function SetupCanvas(){
+function setupCanvas(){
     let canvas = document.getElementById('canvas');
     let ctx = canvas.getContext('2d');
+    
     canvas.width = 800;
     canvas.height = 800;
 
@@ -13,6 +15,7 @@ function SetupCanvas(){
         ctx.fillStyle = "white";
         ctx.fillRect(x,i,4,4)
     }
+    
 }
 
 //add optional scoreboard/message to the side
@@ -20,8 +23,16 @@ function SetupCanvas(){
 //JS stuff
 //PLAYER
 //  create movement functionality
-//  placeholder graphic
-// figure out simple pixel graphics
+function drawShip(){
+    let canvas = document.getElementById('canvas');
+    let ctx = canvas.getContext('2d');
+    let testShip = new Image();
+    testShip.src = 'assets/Player.png'
+    testShip.onload = function(){
+        ctx.drawImage(testShip, 375, 375, 50, 50)
+    }
+}
+
 //
 //WEAPONS
 // basic weapon
