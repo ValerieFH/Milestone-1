@@ -1,0 +1,13 @@
+body {
+    background: black;
+}
+
+#container {
+    max-width: 1200px;
+    margin: auto;
+}
+
+#canvas {
+    background: black;
+    border: 2px solid maroon;
+}
