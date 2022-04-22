@@ -1,9 +1,17 @@
 //Global variables
 let shipX = 375
 let shipY = 700
+let speed = 5
+
+let player = {
+    playerX: 375,
+    playerY: 700,
+    alive: true,
+    speed: 5
+}
+
 let stars = []
 let keys = []
-let speed = 5
 let playerBullets = []
 let enemyBullets = []
 let enemies = []
@@ -14,7 +22,7 @@ let testBullet = [{bulletX: 400, bulletY: 0}]
 
 //Generate star field on load
 for (let i = 0; i < 80; i++){
-    stars.push(Math.floor(Math.random()*800))
+    stars.push([Math.floor(Math.random()*800), ((i+1)*10)])
 }
 
 //Sets up initial Canvas and adds keypress listeners
@@ -38,14 +46,14 @@ window.addEventListener('keyup', keysUp, false)
 loadImages()
 
 function loadImages(){
-    player = new Image()
-    player.src = 'assets/Player.png'
+    playerImg = new Image()
+    playerImg.src = 'assets/Player.png'
 
     enemy1 = new Image()
     enemy1.src = 'assets/enemy-1.png'
 }
 
-
+//draws initial canvas
 function setupCanvas(){
     let canvas = document.getElementById('canvas');
     
@@ -56,6 +64,12 @@ function setupCanvas(){
     
 }
 
+//collision detection function
+ 
+function hasCollided(a,b) {
+
+}
+
 //defines various draw elements - possibly refactor into classes
 
 //player ship
@@ -63,27 +77,27 @@ function drawPlayer(){
     let canvas = document.getElementById('canvas');
     let ctx = canvas.getContext('2d');
     //movement logic
-    if (keys.w && shipY > 0){
-        shipY -= speed;
-    } else if (keys.s && shipY < 750 ){
-        shipY += speed;
+    if (keys.w && player.playerY > 0){
+        player.playerY -= player.speed;
+    } else if (keys.s && player.playerY < 750 ){
+        player.playerY += player.speed;
     }
     
-    if (keys.a && shipX > 0){
-        shipX -= speed
-    } else if (keys.d && shipX < 750){
-        shipX += speed
+    if (keys.a && player.playerX > 0){
+        player.playerX -= player.speed
+    } else if (keys.d && player.playerX < 750){
+        player.playerX += player.speed
     }
 
     //fire bullets
     if (keys[" "] && tick % 10 === 0 ) { //modulus is for bullet delay
         playerBullets.push({
-            bulletX: shipX + 23,
-            bulletY: shipY - 4
+            bulletX: player.playerX + 23,
+            bulletY: player.playerY - 4
         })
     }
 
-    ctx.drawImage(player, shipX, shipY, 50, 50)
+    ctx.drawImage(playerImg, player.playerX, player.playerY, 50, 50)
     
 }
 
@@ -104,13 +118,18 @@ function drawPlayerBullets(){
 
 //Starfield drawing
 function drawStarfield(){
+    travelSpeed = 6;
     let canvas = document.getElementById('canvas');
     let ctx = canvas.getContext('2d');
     
     for (let i = 0; i < 80; i++){
-        let y = (i+1)*10
         ctx.fillStyle = "white";
-        ctx.fillRect(stars[i],y,4,4)
+        ctx.fillRect(stars[i][0],stars[i][1],4,4)
+        if (stars[i][1] > 800){
+            stars[i][1] = 0
+        } else {
+            stars[i][1] += travelSpeed
+        }
     }
 }
 
@@ -155,9 +174,9 @@ function fireEnemyBullets(){
         let enemy = enemies[i]
         if (enemy.enemyY > 100 && enemy.enemyY < 700 && tick % enemyDelay === 0){
             let aim = "straight"
-            if (enemy.enemyX > shipX + 75){
+            if (enemy.enemyX > player.playerX+ 75){
                 aim = "left"
-            } else if (enemy.enemyX < shipX - 25){
+            } else if (enemy.enemyX < player.playerX - 25){
                 aim = "right"
             }
             enemyBullets.push({
@@ -179,6 +198,7 @@ function drawEnemyBullets(){
     for (let i = 0; i < enemyBullets.length; i++){
         let bullet = enemyBullets[i]
         ctx.fillRect(bullet.bulletX,bullet.bulletY,4,4)
+        //improve angled attack to have more consistant speed?
         if (bullet.targetAim === "right"){
             bullet.bulletY += bulletVelocity/2
             bullet.bulletX += bulletVelocity/2
@@ -211,13 +231,13 @@ function draw(){
 window.requestAnimationFrame(draw)
 
 //REQUIRED TODOS
-//add enemy bullets
 //hit detection stuff
 //add score which increases on enemy death
 //start/restart screen
 
 //BONUS
 //more enemy types
+//correct targeting speed
 //music and sound effects
 //traveling star field
 //power ups?
