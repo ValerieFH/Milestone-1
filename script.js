@@ -10,7 +10,7 @@ let enemies = []
 let spawnFrequency = 200
 let tick = 0
 
-let testBullet = [{bulletX: 400, bulletY: 696}]
+let testBullet = [{bulletX: 400, bulletY: 0}]
 
 //Generate star field on load
 for (let i = 0; i < 80; i++){
@@ -121,17 +121,17 @@ function drawEnemies(){
 
     if (tick % spawnFrequency === 0){
         let randomX = Math.floor(Math.random()*750)
-        console.log(randomX)
         enemies.push({
-            enemyX: randomX, //375,
+            enemyX: randomX,
             enemyY: -50,
             alive: true,
             speed: 3
         })
     }
 
-    if (tick % 500 === 0){
+    if (tick % 500 === 0 && spawnFrequency > 50){
         spawnFrequency -= 10
+        console.log("Spawn increased")
     }
 
     for (let i = 0; i < enemies.length; i++){
@@ -145,10 +145,52 @@ function drawEnemies(){
         }
 
     }
-
-    //ctx.drawImage(enemy1, 375, 0, 50, 50)
 }
 
+//enemy bullets
+
+function fireEnemyBullets(){
+    let enemyDelay = 30;
+    for (let i = 0; i < enemies.length; i++){
+        let enemy = enemies[i]
+        if (enemy.enemyY > 100 && enemy.enemyY < 700 && tick % enemyDelay === 0){
+            let aim = "straight"
+            if (enemy.enemyX > shipX + 75){
+                aim = "left"
+            } else if (enemy.enemyX < shipX - 25){
+                aim = "right"
+            }
+            enemyBullets.push({
+                bulletX: enemy.enemyX + 23,
+                bulletY: enemy.enemyY + 54,
+                targetAim: aim
+            })
+        }
+    }
+}
+
+function drawEnemyBullets(){
+    let bulletVelocity = 8;
+    let canvas = document.getElementById('canvas');
+    let ctx = canvas.getContext('2d');
+
+    ctx.fillStyle = "green";
+
+    for (let i = 0; i < enemyBullets.length; i++){
+        let bullet = enemyBullets[i]
+        ctx.fillRect(bullet.bulletX,bullet.bulletY,4,4)
+        if (bullet.targetAim === "right"){
+            bullet.bulletY += bulletVelocity/2
+            bullet.bulletX += bulletVelocity/2
+        } else if (bullet.targetAim === "left"){
+            bullet.bulletY += bulletVelocity/2
+            bullet.bulletX -= bulletVelocity/2
+        } else {
+        bullet.bulletY += bulletVelocity
+        }
+        
+    }
+}
 
 //main draw loop
 function draw(){
@@ -157,18 +199,18 @@ function draw(){
     let ctx = canvas.getContext('2d');
     ctx.clearRect(0,0,800,800)
     //collison checks
-    //
     drawStarfield()
     drawPlayer()
     drawPlayerBullets()
     drawEnemies()
+    fireEnemyBullets()
+    drawEnemyBullets()
     tick++
 }
 
 window.requestAnimationFrame(draw)
 
 //REQUIRED TODOS
-//add one enemy
 //add enemy bullets
 //hit detection stuff
 //add score which increases on enemy death
