@@ -6,6 +6,8 @@ let keys = []
 let speed = 5
 let playerBullets = []
 let enemyBullets = []
+let enemies = []
+let spawnFrequency = 200
 let tick = 0
 
 let testBullet = [{bulletX: 400, bulletY: 696}]
@@ -38,6 +40,9 @@ loadImages()
 function loadImages(){
     player = new Image()
     player.src = 'assets/Player.png'
+
+    enemy1 = new Image()
+    enemy1.src = 'assets/enemy-1.png'
 }
 
 
@@ -109,6 +114,41 @@ function drawStarfield(){
     }
 }
 
+//enemy spawning and drawing (?)
+function drawEnemies(){
+    let canvas = document.getElementById('canvas');
+    let ctx = canvas.getContext('2d');
+
+    if (tick % spawnFrequency === 0){
+        let randomX = Math.floor(Math.random()*750)
+        console.log(randomX)
+        enemies.push({
+            enemyX: randomX, //375,
+            enemyY: -50,
+            alive: true,
+            speed: 3
+        })
+    }
+
+    if (tick % 500 === 0){
+        spawnFrequency -= 10
+    }
+
+    for (let i = 0; i < enemies.length; i++){
+        let enemy = enemies[i]
+        if (!enemy.alive || enemy.enemyY > 850){
+            enemies.splice(i,1)
+            i--
+        } else {
+            ctx.drawImage(enemy1, enemy.enemyX, enemy.enemyY, 50, 50)
+            enemy.enemyY += enemy.speed
+        }
+
+    }
+
+    //ctx.drawImage(enemy1, 375, 0, 50, 50)
+}
+
 
 //main draw loop
 function draw(){
@@ -121,20 +161,21 @@ function draw(){
     drawStarfield()
     drawPlayer()
     drawPlayerBullets()
+    drawEnemies()
     tick++
 }
 
 window.requestAnimationFrame(draw)
 
 //REQUIRED TODOS
-//Add player bullets
-//add enemies
+//add one enemy
 //add enemy bullets
 //hit detection stuff
 //add score which increases on enemy death
 //start/restart screen
 
 //BONUS
+//more enemy types
 //music and sound effects
 //traveling star field
 //power ups?
