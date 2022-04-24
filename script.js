@@ -1,8 +1,10 @@
 //Global variables
 
 let player = {
-    playerX: 375,
-    playerY: 700,
+    x: 375,
+    y: 700,
+    width: 50,
+    height: 50,
     alive: true,
     speed: 5
 }
@@ -101,32 +103,34 @@ function hasCollided(a,b) {
 
 //defines various draw elements - possibly refactor into classes
 
-//player ship
+//player ship with moving and firing controls
 function drawPlayer(){
     let canvas = document.getElementById('canvas');
     let ctx = canvas.getContext('2d');
     //movement logic
-    if (keys.w && player.playerY > 0){
-        player.playerY -= player.speed;
-    } else if (keys.s && player.playerY < 750 ){
-        player.playerY += player.speed;
+    if (keys.w && player.y > 0){
+        player.y -= player.speed;
+    } else if (keys.s && player.y < 750 ){
+        player.y += player.speed;
     }
     
-    if (keys.a && player.playerX > 0){
-        player.playerX -= player.speed
-    } else if (keys.d && player.playerX < 750){
-        player.playerX += player.speed
+    if (keys.a && player.x > 0){
+        player.x -= player.speed
+    } else if (keys.d && player.x < 750){
+        player.x += player.speed
     }
 
     //fire bullets
     if (keys[" "] && tick % 10 === 0 ) { //modulus is for bullet delay
         playerBullets.push({
-            bulletX: player.playerX + 23,
-            bulletY: player.playerY - 4
+            x: player.x + 23,
+            y: player.y - 4,
+            width: 4,
+            height: 4,
         })
     }
 
-    ctx.drawImage(playerImg, player.playerX, player.playerY, 50, 50)
+    ctx.drawImage(playerImg, player.x, player.y, player.width, player.height)
     
 }
 
@@ -140,12 +144,12 @@ function drawPlayerBullets(){
 
     for (let i = 0; i < playerBullets.length; i++){
         let bullet = playerBullets[i]
-        if (bullet.bulletY < 0){
+        if (bullet.y < 0){
             playerBullets.splice(i,1)
             i--
         } else {
-            ctx.fillRect(bullet.bulletX,bullet.bulletY,4,4)
-            bullet.bulletY -= bulletVelocity
+            ctx.fillRect(bullet.x, bullet.y, bullet.width, bullet.height)
+            bullet.y -= bulletVelocity
         }
     }
 }
@@ -167,34 +171,39 @@ function drawStarfield(){
     }
 }
 
-//enemy spawning and drawing (?)
+//enemy spawning and drawing, with frequency variable
 function drawEnemies(){
     let canvas = document.getElementById('canvas');
     let ctx = canvas.getContext('2d');
 
+    //generates new enemy
     if (tick % spawnFrequency === 0){
         let randomX = Math.floor(Math.random()*750)
         enemies.push({
-            enemyX: randomX,
-            enemyY: -50,
+            x: randomX,
+            y: -50,
+            width: 50,
+            height: 50,
             alive: true,
             speed: 3
         })
     }
 
+    //spawn speed control
     if (tick % 500 === 0 && spawnFrequency > 50){
         spawnFrequency -= 10
         console.log("Spawn increased")
     }
 
+    //drawing function
     for (let i = 0; i < enemies.length; i++){
         let enemy = enemies[i]
-        if (!enemy.alive || enemy.enemyY > 850){
+        if (!enemy.alive || enemy.y > 850){
             enemies.splice(i,1)
             i--
         } else {
-            ctx.drawImage(enemy1, enemy.enemyX, enemy.enemyY, 50, 50)
-            enemy.enemyY += enemy.speed
+            ctx.drawImage(enemy1, enemy.x, enemy.y, enemy.width, enemy.height)
+            enemy.y += enemy.speed
         }
 
     }
@@ -205,17 +214,19 @@ function fireEnemyBullets(){
     let enemyDelay = 30; //refire rate of enemies
     for (let i = 0; i < enemies.length; i++){
         let enemy = enemies[i]
-        if (enemy.enemyY > 100 && enemy.enemyY < 700 && tick % enemyDelay === 0){
+        if (enemy.y > 100 && enemy.y < 700 && tick % enemyDelay === 0){
             //compares x axis to player and aims shot left or right depending
             let aim = "straight"
-            if (enemy.enemyX > player.playerX+ 75){
+            if (enemy.x > player.x+ 75){
                 aim = "left"
-            } else if (enemy.enemyX < player.playerX - 25){
+            } else if (enemy.x < player.x - 25){
                 aim = "right"
             }
             enemyBullets.push({
-                bulletX: enemy.enemyX + 23,
-                bulletY: enemy.enemyY + 54,
+                x: enemy.x + 23,
+                y: enemy.y + 54,
+                width: 4,
+                height: 4,
                 targetAim: aim
             })
         }
@@ -232,24 +243,34 @@ function drawEnemyBullets(){
 
     for (let i = 0; i < enemyBullets.length; i++){
         let bullet = enemyBullets[i]
-        if (bullet.bulletY > 805){
+        if (bullet.y > 805){
             enemyBullets.splice(i,1)
             i--
         } else {
-            ctx.fillRect(bullet.bulletX,bullet.bulletY,4,4)
+            ctx.fillRect(bullet.x, bullet.y, bullet.width, bullet.height)
             //improve angled attack to have more consistant speed?
             if (bullet.targetAim === "right"){
-                bullet.bulletY += bulletVelocity/2
-                bullet.bulletX += bulletVelocity/2
+                bullet.y += bulletVelocity/2
+                bullet.x += bulletVelocity/2
             } else if (bullet.targetAim === "left"){
-                bullet.bulletY += bulletVelocity/2
-                bullet.bulletX -= bulletVelocity/2
+                bullet.y += bulletVelocity/2
+                bullet.x -= bulletVelocity/2
             } else {
-            bullet.bulletY += bulletVelocity
+            bullet.y += bulletVelocity
             }
         }
         
     }
+}
+
+//collision checking loop
+
+function collisions(){
+    //checks if player bullets have hit enemy
+
+    //checks if enemy bullets have hit player
+
+    //checks if enemy ship has hit player
 }
 
 //main draw loop
@@ -272,7 +293,6 @@ window.requestAnimationFrame(draw)
 
 //REQUIRED TODOS
 //hit detection stuff
-//  RELATED: refactor all objects to have .x and .y values as well as .width and .height
 //add score which increases on enemy death
 //start/restart screen
 
