@@ -192,7 +192,7 @@ function drawEnemies(){
     //spawn speed control
     if (tick % 500 === 0 && spawnFrequency > 50){
         spawnFrequency -= 10
-        console.log("Spawn increased")
+        //console.log("Spawn increased")
     }
 
     //drawing function
@@ -267,10 +267,27 @@ function drawEnemyBullets(){
 
 function collisions(){
     //checks if player bullets have hit enemy
+    for (let i = 0; i < playerBullets.length; i++){
+        for (let j = 0; j <enemies.length; j++){
+            if (hasCollided(playerBullets[i],enemies[j])){
+                console.log("Enemy hit!");
+            }
+        }
+    }
 
     //checks if enemy bullets have hit player
+    for (let i = 0; i < enemyBullets.length; i++){
+        if (hasCollided(enemyBullets[i],player)){
+            console.log("Player hit!");
+        }
+    }
 
     //checks if enemy ship has hit player
+    for (let i = 0; i < enemies.length; i++){
+        if (hasCollided(enemies[i],player)){
+            console.log("Player crashed!");
+        }
+    }
 }
 
 //main draw loop
@@ -279,7 +296,7 @@ function draw(){
     let canvas = document.getElementById('canvas');
     let ctx = canvas.getContext('2d');
     ctx.clearRect(0,0,800,800)
-    //collison checks
+    collisions()
     drawStarfield()
     drawPlayer()
     drawPlayerBullets()
