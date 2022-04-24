@@ -1,5 +1,4 @@
 //Global variables
-
 let player = {
     x: 375,
     y: 700,
@@ -16,6 +15,28 @@ let enemyBullets = []
 let enemies = []
 let spawnFrequency = 200
 let tick = 0
+let score = 0
+let titleY = -100
+
+//Game Reset Variables
+function reset(){
+    player = {
+        x: 375,
+        y: 700,
+        width: 50,
+        height: 50,
+        alive: true,
+        speed: 5
+    }
+    
+    keys = []
+    playerBullets = []
+    enemyBullets = []
+    enemies = []
+    spawnFrequency = 200
+    tick = 0
+    score = 0
+}
 
 //Generate star field on load
 for (let i = 0; i < 80; i++){
@@ -48,17 +69,58 @@ function loadImages(){
 
     enemy1 = new Image()
     enemy1.src = 'assets/enemy-1.png'
+
+    title = new Image()
+    title.src = 'assets/title2.png'
 }
 
 //draws initial canvas
 function setupCanvas(){
+    window.requestAnimationFrame(setupCanvas)
     let canvas = document.getElementById('canvas');
+    let ctx = canvas.getContext('2d');
     
     canvas.width = 800;
     canvas.height = 800;
     
-    drawStarfield()
+    ctx.clearRect(0,0,800,800)
+    drawStarfield(0)
+
+    ctx.drawImage(title, 200, titleY)
+    if (titleY < 250) {
+        titleY += 3
+        }
+
+    ctx.font = '30px Courier New'
+    ctx.fillText("Press N to start", 255, 475)
+
+    if (keys.n) {
+        delete keys.n
+        window.requestAnimationFrame(draw)
+    }
     
+}
+
+//end game state
+function endGame(){
+    window.requestAnimationFrame(endGame)
+    let canvas = document.getElementById('canvas');
+    let ctx = canvas.getContext('2d');
+    
+    canvas.width = 800;
+    canvas.height = 800;
+    
+    drawStarfield(0)
+
+    ctx.font = '45px Courier New'
+    ctx.fillText("GAME OVER", 255, 350)
+
+    ctx.font = '30px Courier New'
+    ctx.fillText("Score: " + score.toString(), 300, 425)
+
+    ctx.font = '30px Courier New'
+    ctx.fillText("Reload to restart", 245, 500)
+
 }
 
 //collision detection function
@@ -155,8 +217,8 @@ function drawPlayerBullets(){
 }
 
 //Starfield drawing
-function drawStarfield(){
-    travelSpeed = 4;
+function drawStarfield(speed){
+    travelSpeed = speed;
     let canvas = document.getElementById('canvas');
     let ctx = canvas.getContext('2d');
     
@@ -270,7 +332,12 @@ function collisions(){
     for (let i = 0; i < playerBullets.length; i++){
         for (let j = 0; j <enemies.length; j++){
             if (hasCollided(playerBullets[i],enemies[j])){
-                console.log("Enemy hit!");
+                //console.log("Enemy hit!");
+                playerBullets.splice(i,1)
+                i--
+                enemies.splice(j,1)
+                j--
+                score += 10
             }
         }
     }
@@ -278,42 +345,54 @@ function collisions(){
     //checks if enemy bullets have hit player
     for (let i = 0; i < enemyBullets.length; i++){
         if (hasCollided(enemyBullets[i],player)){
-            console.log("Player hit!");
+            //console.log("Player hit!");
+            //player.alive = false
+            window.requestAnimationFrame(endGame)
         }
     }
 
     //checks if enemy ship has hit player
     for (let i = 0; i < enemies.length; i++){
         if (hasCollided(enemies[i],player)){
-            console.log("Player crashed!");
+            //console.log("Player crashed!");
+            //player.alive = false
+            window.requestAnimationFrame(endGame)
         }
     }
 }
 
-//main draw loop
-function draw(){
-    window.requestAnimationFrame(draw)
+//Draws score on screen
+function drawScore(){
     let canvas = document.getElementById('canvas');
     let ctx = canvas.getContext('2d');
-    ctx.clearRect(0,0,800,800)
-    collisions()
-    drawStarfield()
-    drawPlayer()
-    drawPlayerBullets()
-    drawEnemies()
-    fireEnemyBullets()
-    drawEnemyBullets()
-    tick++
+    ctx.font = '21px Courier New'
+    ctx.fillText("Score: " + score.toString(), 20, 30)
 }
 
-window.requestAnimationFrame(draw)
+//main draw loop
+function draw(){
+    
+        window.requestAnimationFrame(draw)
+        let canvas = document.getElementById('canvas');
+        let ctx = canvas.getContext('2d');
+        ctx.clearRect(0,0,800,800)
+        collisions()
+        drawStarfield(4)
+        drawScore()
+        drawPlayer()
+        drawPlayerBullets()
+        drawEnemies()
+        fireEnemyBullets()
+        drawEnemyBullets()
+        tick++
+}
+
+//window.requestAnimationFrame(setupCanvas)
 
 //REQUIRED TODOS
-//hit detection stuff
-//add score which increases on enemy death
-//start/restart screen
 
 //BONUS
+//player shield/hp
 //more enemy types
 //correct targeting speed
 //music and sound effects
