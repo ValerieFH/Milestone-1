@@ -17,6 +17,17 @@ let spawnFrequency = 200
 let tick = 0
 let score = 0
 let titleY = -100
+let gameState = 0
+let finalScore = 0
+
+//sound effects found at https://opengameart.org/content/8-bit-sound-effects-2 from user hosch
+let playerLaser = new Audio('assets/sfx_ray.ogg')
+let enemyLaser = new Audio('assets/sfx_resurrect.ogg')
+let enemyDeath = new Audio('assets/sfx_hurt.ogg')
+//sound effect found at https://opengameart.org/content/8bit-death-whirl from user Fupi
+let gameOverSound = new Audio('assets/vgdeathsound.wav')
+
+
 
 //Game Reset Variables
 function reset(){
@@ -29,7 +40,7 @@ function reset(){
         speed: 5
     }
     
-    keys = []
+    //keys = []
     playerBullets = []
     enemyBullets = []
     enemies = []
@@ -74,9 +85,13 @@ function loadImages(){
     title.src = 'assets/title2.png'
 }
 
+
+
 //draws initial canvas
 function setupCanvas(){
-    window.requestAnimationFrame(setupCanvas)
+    if (gameState === 0) {
+        window.requestAnimationFrame(setupCanvas)
+    }
     let canvas = document.getElementById('canvas');
     let ctx = canvas.getContext('2d');
     
@@ -94,8 +109,14 @@ function setupCanvas(){
     ctx.font = '30px Courier New'
     ctx.fillText("Press N to start", 255, 475)
 
+    ctx.font = '25px Courier New'
+    ctx.fillText("CONTROLS:", 325, 550)
+    ctx.fillText("WASD to move, space to fire", 200, 585)
+    
+
     if (keys.n) {
         delete keys.n
+        gameState = 1
         window.requestAnimationFrame(draw)
     }
     
@@ -103,24 +124,34 @@ function setupCanvas(){
 
 //end game state
 function endGame(){
-    window.requestAnimationFrame(endGame)
+    if (gameState === 2){
+        window.requestAnimationFrame(endGame)
+    }
     let canvas = document.getElementById('canvas');
     let ctx = canvas.getContext('2d');
     
     canvas.width = 800;
     canvas.height = 800;
     
+    
+    
     drawStarfield(0)
-
+    
     ctx.font = '45px Courier New'
     ctx.fillText("GAME OVER", 255, 350)
-
+    
     ctx.font = '30px Courier New'
-    ctx.fillText("Score: " + score.toString(), 300, 425)
-
+    ctx.fillText("Score: " + finalScore.toString(), 300, 425)
+    
     ctx.font = '30px Courier New'
-    ctx.fillText("Reload to restart", 245, 500)
+    ctx.fillText("Press N to restart", 245, 500)
+    
 
+    if (keys.n) {
+        delete keys.n
+        gameState = 1
+        window.requestAnimationFrame(draw)
+    }
 }
 
 //collision detection function
@@ -184,12 +215,14 @@ function drawPlayer(){
 
     //fire bullets
     if (keys[" "] && tick % 10 === 0 ) { //modulus is for bullet delay
+        playerLaser.load();
         playerBullets.push({
             x: player.x + 23,
             y: player.y - 4,
             width: 4,
             height: 4,
         })
+        playerLaser.play();
     }
 
     ctx.drawImage(playerImg, player.x, player.y, player.width, player.height)
@@ -218,7 +251,6 @@ function drawPlayerBullets(){
 
 //Starfield drawing
 function drawStarfield(speed){
-    travelSpeed = speed;
     let canvas = document.getElementById('canvas');
     let ctx = canvas.getContext('2d');
     
@@ -228,7 +260,7 @@ function drawStarfield(speed){
         if (stars[i][1] > 800){
             stars[i][1] = 0
         } else {
-            stars[i][1] += travelSpeed
+            stars[i][1] += speed
         }
     }
 }
@@ -284,6 +316,7 @@ function fireEnemyBullets(){
             } else if (enemy.x < player.x - 25){
                 aim = "right"
             }
+            enemyLaser.load();
             enemyBullets.push({
                 x: enemy.x + 23,
                 y: enemy.y + 54,
@@ -291,6 +324,7 @@ function fireEnemyBullets(){
                 height: 4,
                 targetAim: aim
             })
+            enemyLaser.play();
         }
     }
 }
@@ -332,7 +366,7 @@ function collisions(){
     for (let i = 0; i < playerBullets.length; i++){
         for (let j = 0; j <enemies.length; j++){
             if (hasCollided(playerBullets[i],enemies[j])){
-                //console.log("Enemy hit!");
+                enemyDeath.play()
                 playerBullets.splice(i,1)
                 i--
                 enemies.splice(j,1)
@@ -345,18 +379,22 @@ function collisions(){
     //checks if enemy bullets have hit player
     for (let i = 0; i < enemyBullets.length; i++){
         if (hasCollided(enemyBullets[i],player)){
-            //console.log("Player hit!");
-            //player.alive = false
+            gameOverSound.play()
+            gameState = 2
             window.requestAnimationFrame(endGame)
+            finalScore = score
+            reset()
         }
     }
 
     //checks if enemy ship has hit player
     for (let i = 0; i < enemies.length; i++){
         if (hasCollided(enemies[i],player)){
-            //console.log("Player crashed!");
-            //player.alive = false
+            gameOverSound.play()
+            gameState = 2
             window.requestAnimationFrame(endGame)
+            finalScore = score
+            reset()
         }
     }
 }
@@ -371,30 +409,33 @@ function drawScore(){
 
 //main draw loop
 function draw(){
-    
+    if (gameState === 1){
         window.requestAnimationFrame(draw)
-        let canvas = document.getElementById('canvas');
-        let ctx = canvas.getContext('2d');
-        ctx.clearRect(0,0,800,800)
-        collisions()
-        drawStarfield(4)
-        drawScore()
-        drawPlayer()
-        drawPlayerBullets()
-        drawEnemies()
-        fireEnemyBullets()
-        drawEnemyBullets()
-        tick++
+    }
+    let canvas = document.getElementById('canvas');
+    let ctx = canvas.getContext('2d');
+    ctx.clearRect(0,0,800,800)
+    collisions()
+    drawStarfield(4)
+    drawScore()
+    drawPlayer()
+    drawPlayerBullets()
+    drawEnemies()
+    fireEnemyBullets()
+    drawEnemyBullets()
+    tick++
 }
 
 //window.requestAnimationFrame(setupCanvas)
 
 //REQUIRED TODOS
+//complete readme
 
 //BONUS
 //player shield/hp
+//save high scroe
 //more enemy types
 //correct targeting speed
-//music and sound effects
+//add chiptune theme
 //add additional starfield with different travel speed
 //power ups?
