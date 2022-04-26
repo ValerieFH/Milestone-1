@@ -27,6 +27,10 @@ let enemyDeath = new Audio('assets/sfx_hurt.ogg')
 //sound effect found at https://opengameart.org/content/8bit-death-whirl from user Fupi
 let gameOverSound = new Audio('assets/vgdeathsound.wav')
 
+//music found at https://opengameart.org/content/nes-shooter-music-5-tracks-3-jingles from user SketchyLogic
+let gameMusic = new Audio('assets/Mercury.wav')
+gameMusic.loop = true
+let endMusic = new Audio('assets/Map (basic version).wav')
 
 
 //Game Reset Variables
@@ -56,6 +60,7 @@ for (let i = 0; i < 80; i++){
 
 //Sets up initial Canvas and adds keypress listeners
 document.addEventListener('DOMContentLoaded', setupCanvas)
+// document.addEventListener('DOMContentLoaded', playTitleMusic)
 
 window.addEventListener('keydown', keysDown, false)
     function keysDown(e) {
@@ -85,8 +90,6 @@ function loadImages(){
     title.src = 'assets/title2.png'
 }
 
-
-
 //draws initial canvas
 function setupCanvas(){
     if (gameState === 0) {
@@ -100,7 +103,8 @@ function setupCanvas(){
     
     ctx.clearRect(0,0,800,800)
     drawStarfield(0)
-
+    
+    
     ctx.drawImage(title, 200, titleY)
     if (titleY < 250) {
         titleY += 3
@@ -118,6 +122,7 @@ function setupCanvas(){
         delete keys.n
         gameState = 1
         window.requestAnimationFrame(draw)
+        gameMusic.play()
     }
     
 }
@@ -151,6 +156,9 @@ function endGame(){
         delete keys.n
         gameState = 1
         window.requestAnimationFrame(draw)
+        endMusic.pause()
+        endMusic.load()
+        gameMusic.play()
     }
 }
 
@@ -384,6 +392,9 @@ function collisions(){
             window.requestAnimationFrame(endGame)
             finalScore = score
             reset()
+            gameMusic.pause();
+            gameMusic.load();
+            endMusic.play();
         }
     }
 
@@ -395,6 +406,9 @@ function collisions(){
             window.requestAnimationFrame(endGame)
             finalScore = score
             reset()
+            gameMusic.pause();
+            gameMusic.load();
+            endMusic.play();
         }
     }
 }
@@ -426,16 +440,14 @@ function draw(){
     tick++
 }
 
-//window.requestAnimationFrame(setupCanvas)
-
 //REQUIRED TODOS
 //complete readme
 
 //BONUS
-//player shield/hp
 //save high scroe
-//more enemy types
-//correct targeting speed
 //add chiptune theme
+//more enemy types
+//player shield/hp
+//correct targeting speed
 //add additional starfield with different travel speed
 //power ups?
